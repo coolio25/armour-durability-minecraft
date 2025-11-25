@@ -1,0 +1,74 @@
+package com.coolio25.armordurability;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.item.ItemRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class ArmorHotbarMod implements ClientModInitializer {
+
+    @Override
+    public void onInitializeClient() {
+        // Register HUD renderer
+        HudRenderCallback.EVENT.register(this::onHudRender);
+    }
+
+    private void onHudRender(MatrixStack matrices, float tickDelta) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) return;
+        if (client.options.hudHidden) return;
+
+        ItemRenderer itemRenderer = client.getItemRenderer();
+        TextRenderer textRenderer = client.textRenderer;
+
+        int screenW = client.getWindow().getScaledWidth();
+        int screenH = client.getWindow().getScaledHeight();
+
+        // Collect armor items. getArmorItems() iterates boots -> helmet usually,
+        // so reverse to display helmet at top.
+        List<ItemStack> armor = new ArrayList<>();
+        for (ItemStack s : client.player.getArmorItems()) {
+            armor.add(s);
+        }
+        Collections.reverse(armor);
+
+        int slotSize = 20;
+        int totalHeight = armor.size() * slotSize;
+        int x = screenW - 10 - slotSize; // 10 px from right edge
+        int yStart = screenH / 2 - totalHeight / 2;
+
+        for (int i = 0; i < armor.size(); i++) {
+            ItemStack stack = armor.get(i);
+            if (stack == null || stack.isEmpty()) continue;
+
+            int y = yStart + i * slotSize;
+
+            // Render the item icon
+            itemRenderer.renderGuiItemIcon(stack, x, y);
+            // Render vanilla overlay (stack count, etc.)
+            itemRenderer.renderGuiItemOverlay(textRenderer, stack, x, y, null);
+
+            // Draw durability percent if item is damageable
+            if (stack.isDamageable()) {
+                int max = stack.getMaxDamage();
+                int dmg = stack.getDamage();
+                int remaining = Math.max(0, max - dmg);
+                int percent = (int) (remaining * 100.0f / max + 0.5f);
+                String text = percent + "%";
+
+                // Slight offset so text sits to the right of the icon
+                int textX = x + 18;
+                int textY = y + 6;
+
+                textRenderer.draw(matrices, text, textX, textY, 0xFFFFFF);
+            }
+        }
+    }
+}
