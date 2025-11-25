@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "armordurability",
+  "version": "0.1.0",
+  "name": "Armor Durability Side Hotbar",
+  "description": "Displays a vertical side hotbar showing armor pieces and their durability percentages.",
+  "authors": ["coolio25"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.coolio25.armordurability.ArmorHotbarMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "fabric": "*",
+    "minecraft": ">=1.20"
+  }
+}
